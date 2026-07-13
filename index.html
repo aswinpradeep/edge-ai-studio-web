@@ -1,0 +1,1780 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edge AI Studio — Unified Multi-Modal Pipeline</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-gradient: radial-gradient(circle at 50% 0%, #101326 0%, #05060b 100%);
+      --panel-bg: rgba(16, 20, 38, 0.65);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --primary: #8b5cf6;
+      --primary-hover: #7c3aed;
+      --primary-glow: rgba(139, 92, 246, 0.25);
+      --accent-cyan: #06b6d4;
+      --accent-cyan-glow: rgba(6, 182, 212, 0.25);
+      --accent-green: #10b981;
+      --accent-green-glow: rgba(16, 185, 129, 0.2);
+      --input-bg: rgba(8, 10, 20, 0.5);
+    }
+
+    html[data-theme="light"] {
+      --bg-gradient: radial-gradient(circle at 50% 0%, #f3f4f6 0%, #e5e7eb 100%);
+      --panel-bg: rgba(255, 255, 255, 0.75);
+      --border-color: rgba(0, 0, 0, 0.08);
+      --text-main: #1f2937;
+      --text-muted: #4b5563;
+      --primary: #6d28d9;
+      --primary-hover: #5b21b6;
+      --primary-glow: rgba(109, 40, 217, 0.1);
+      --accent-cyan: #0891b2;
+      --accent-cyan-glow: rgba(8, 145, 178, 0.1);
+      --accent-green: #059669;
+      --accent-green-glow: rgba(5, 150, 105, 0.1);
+      --input-bg: rgba(255, 255, 255, 0.85);
+    }
+
+    html[data-theme="light"] h1 {
+      background: linear-gradient(135deg, #1e1b4b 0%, #6d28d9 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    html[data-theme="light"] .panel {
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+
+    html[data-theme="light"] .tts-visualizers {
+      background: rgba(255, 255, 255, 0.8);
+    }
+
+    html[data-theme="light"] .ocr-preview-container {
+      background: #f3f4f6;
+    }
+
+    html[data-theme="light"] .tts-stat-card {
+      background: rgba(0, 0, 0, 0.02);
+    }
+
+    html[data-theme="light"] #theme-icon-sun { display: block !important; }
+    html[data-theme="light"] #theme-icon-moon { display: none !important; }
+    html[data-theme="dark"] #theme-icon-sun { display: none !important; }
+    html[data-theme="dark"] #theme-icon-moon { display: block !important; }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 1.5rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #ffffff 0%, #a78bfa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    .studio-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+      align-items: start;
+    }
+
+    @media (max-width: 1024px) {
+      .studio-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-radius: 20px;
+      padding: 1.75rem;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      margin-bottom: 1.5rem;
+      position: relative;
+      transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .panel-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.75rem;
+    }
+
+    .panel-title .badge {
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 0.2rem 0.6rem;
+      border-radius: 99px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .panel-title .badge.litert {
+      color: #ff6f00;
+      border-color: rgba(255, 111, 0, 0.2);
+      background: rgba(255, 111, 0, 0.05);
+    }
+
+    .panel-title .badge.onnx {
+      color: var(--accent-cyan);
+      border-color: rgba(6, 182, 212, 0.2);
+      background: rgba(6, 182, 212, 0.05);
+    }
+
+    .panel-title .badge.ready {
+      color: var(--accent-green);
+      border-color: rgba(16, 185, 129, 0.3);
+      background: rgba(16, 185, 129, 0.08);
+    }
+
+    .panel-title .badge.pending {
+      color: #fbbf24;
+      border-color: rgba(251, 191, 36, 0.3);
+      background: rgba(251, 191, 36, 0.08);
+    }
+
+    /* Form Fields & Controls */
+    .form-group {
+      margin-bottom: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    textarea, input[type="text"], select {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.95rem;
+      outline: none;
+      transition: all 0.25s ease;
+    }
+
+    textarea:focus, input[type="text"]:focus, select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    textarea {
+      height: 100px;
+      resize: none;
+    }
+
+    /* Buttons */
+    .btn {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 0.75rem 1.25rem;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px var(--primary-glow);
+    }
+
+    .btn:hover:not(:disabled) {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      box-shadow: none;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-danger {
+      background: #ef4444;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+    }
+
+    .btn-danger:hover:not(:disabled) {
+      background: #dc2626;
+    }
+
+    /* OCR UI Component */
+    .ocr-dropzone {
+      border: 2px dashed var(--border-color);
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.01);
+      transition: all 0.25s ease;
+      margin-bottom: 1rem;
+    }
+
+    .ocr-dropzone:hover {
+      border-color: var(--primary);
+      background: rgba(139, 92, 246, 0.03);
+    }
+
+    .ocr-dropzone p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .ocr-preview-container {
+      position: relative;
+      width: 100%;
+      max-height: 260px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #000;
+      border: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+
+    .ocr-preview-container canvas {
+      max-width: 100%;
+      max-height: 260px;
+      object-fit: contain;
+    }
+
+    /* ASR UI Component */
+    .mic-control-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .wave-pulse {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      height: 30px;
+    }
+
+    .wave-pulse .bar {
+      width: 3px;
+      height: 10%;
+      background: var(--accent-cyan);
+      border-radius: 99px;
+      transition: height 0.1s ease;
+    }
+
+    .wave-pulse.recording .bar {
+      animation: mic-bounce 0.8s ease-in-out infinite alternate;
+    }
+
+    .wave-pulse.recording .bar:nth-child(2) { animation-delay: 0.15s; }
+    .wave-pulse.recording .bar:nth-child(3) { animation-delay: 0.3s; }
+    .wave-pulse.recording .bar:nth-child(4) { animation-delay: 0.45s; }
+    .wave-pulse.recording .bar:nth-child(5) { animation-delay: 0.6s; }
+
+    @keyframes mic-bounce {
+      0% { height: 10%; }
+      100% { height: 100%; }
+    }
+
+    /* LLM Progress & Stats */
+    .progress-container {
+      margin-top: 0.5rem;
+      margin-bottom: 1rem;
+      display: none;
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--accent-cyan));
+      transition: width 0.1s ease;
+    }
+
+    .progress-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.3rem;
+    }
+
+    /* TTS Controls & Stats */
+    .tts-stats-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .tts-stat-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 0.5rem 0.75rem;
+      text-align: center;
+    }
+
+    .tts-stat-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 0.2rem;
+    }
+
+    .tts-stat-val {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .tts-visualizers {
+      position: relative;
+      width: 100%;
+      height: 70px;
+      background: rgba(8, 10, 20, 0.5);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-top: 1rem;
+    }
+
+    .tts-visualizers canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Status Indicator */
+    .status-banner {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+      padding: 0.4rem 0.8rem;
+      border-radius: 99px;
+      font-size: 0.8rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-muted);
+    }
+
+    .status-banner.ready .status-dot { background: var(--accent-cyan); box-shadow: 0 0 8px var(--accent-cyan); }
+    .status-banner.running .status-dot { background: var(--primary); animation: status-pulse 1s infinite; }
+    .status-banner.error .status-dot { background: #ef4444; }
+
+    @keyframes status-pulse {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; }
+    }
+
+    .pipeline-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      margin-bottom: 1rem;
+      color: var(--text-muted);
+    }
+
+    .pipeline-toggle input {
+      accent-color: var(--primary);
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+
+    .row-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: auto;
+      padding-top: 2rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* Model status indicator dot */
+    .model-status__dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      margin-right: 4px;
+    }
+    .status-ready .model-status__dot { background: var(--accent-green); }
+    .status-loading .model-status__dot { background: #fbbf24; animation: status-pulse 1s infinite; }
+    .status-running .model-status__dot { background: var(--primary); animation: status-pulse 1s infinite; }
+  </style>
+</head>
+<body class="theme-transition-active">
+
+  <!-- Theme Toggle Button -->
+  <div style="position: absolute; top: 1.5rem; right: 1.5rem; z-index: 100;">
+    <button id="theme-toggle-btn" class="btn btn-secondary" style="border-radius: 99px; width: 42px; height: 42px; padding: 0; display: inline-flex; align-items: center; justify-content: center; background: var(--panel-bg); backdrop-filter: blur(8px); cursor: pointer;">
+      <svg id="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+      <svg id="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+    </button>
+  </div>
+
+  <header>
+    <h1>Edge AI Studio</h1>
+    <p class="subtitle">Multi-Modal On-Device Pipeline running locally on CPU WASM & ONNX Web</p>
+  </header>
+
+  <!-- Global controls & metrics -->
+  <div class="panel" style="max-width: 1400px; margin: 0 auto 1.5rem auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; padding: 1.25rem 1.75rem;">
+    <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+      <button id="load-all-btn" class="btn" style="background: linear-gradient(135deg, var(--primary) 0%, var(--accent-cyan) 100%); min-width: 180px;">
+        <span>Load All Models</span>
+      </button>
+      <div id="global-load-status" style="font-size: 0.9rem; color: var(--text-muted);">
+        Click to pre-load all AI models for offline edge inference.
+      </div>
+    </div>
+    <div style="display: flex; gap: 1.5rem; font-size: 0.85rem; color: var(--text-muted);">
+      <div>System RAM Limit: <span style="color: var(--text-main); font-weight: 600;">Browser Managed</span></div>
+      <div>Heap Size: <span id="global-heap-size" style="color: var(--accent-cyan); font-weight: 600;">--</span></div>
+    </div>
+  </div>
+
+  <div class="studio-grid">
+    <!-- LEFT COLUMN: Inputs (OCR & ASR) -->
+    <div class="column">
+      
+      <!-- DOCUMENT OCR PANEL -->
+      <div class="panel">
+        <div class="panel-title">
+          <span>1. Document OCR</span>
+          <span class="badge litert">LiteRT.js</span>
+          <span id="ocr-status-badge" class="badge pending" style="margin-left: auto;">Not Loaded</span>
+        </div>
+        
+        <div class="model-meta-row" style="display: flex; justify-content: space-between; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.6rem 0.8rem; margin-bottom: 1rem; font-size: 0.8rem; color: var(--text-muted);">
+          <div>Size: <span style="color: var(--text-main); font-weight: 500;">57 MB</span></div>
+          <div>Est. RAM: <span style="color: var(--text-main); font-weight: 500;">~120 MB</span></div>
+          <div>Load Time: <span id="ocr-load-time" style="color: var(--text-main); font-weight: 500;">--</span></div>
+        </div>
+        
+        <div class="ocr-dropzone" id="ocr-dropzone">
+          <p>Drag & Drop Document Image here, or click to browse</p>
+          <input type="file" id="ocr-file-input" accept="image/*" style="display: none;">
+        </div>
+
+        <div class="ocr-preview-container" id="ocr-preview-container" style="display: none;">
+          <canvas id="ocr-canvas"></canvas>
+        </div>
+
+        <div class="row-split" style="margin-bottom: 1rem; display: flex; gap: 0.5rem; align-items: stretch;">
+          <button id="ocr-run-btn" class="btn" disabled style="flex: 1;">Run OCR Pipeline</button>
+          <button id="ocr-sample-btn" class="btn btn-secondary" style="flex: 1;">Load Sample Doc</button>
+          <div id="ocr-time" style="font-size: 0.8rem; color: var(--text-muted); display: flex; flex-direction: column; justify-content: center; min-width: 90px; text-align: right;">
+            <div>Detect: <span id="ocr-detect-ms">--</span></div>
+            <div>Recog: <span id="ocr-recognize-ms">--</span></div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Extracted Context Text</label>
+          <textarea id="ocr-extracted-text" placeholder="OCR text will appear here..."></textarea>
+        </div>
+      </div>
+
+      <!-- ASR VOICE CONTROL PANEL -->
+      <div class="panel">
+        <div class="panel-title">
+          <span>2. Speech-to-Text (ASR)</span>
+          <span class="badge litert">LiteRT.js</span>
+          <span id="asr-status-badge" class="badge pending" style="margin-left: auto;">Not Loaded</span>
+        </div>
+
+        <div class="model-meta-row" style="display: flex; justify-content: space-between; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.6rem 0.8rem; margin-bottom: 1rem; font-size: 0.8rem; color: var(--text-muted);">
+          <div>Size: <span style="color: var(--text-main); font-weight: 500;">144 MB</span></div>
+          <div>Est. RAM: <span style="color: var(--text-main); font-weight: 500;">~250 MB</span></div>
+          <div>Load Time: <span id="asr-load-time" style="color: var(--text-main); font-weight: 500;">--</span></div>
+        </div>
+
+        <div class="mic-control-row" style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+          <button id="asr-record-btn" class="btn btn-secondary">Record Voice</button>
+          <button id="asr-sample-btn" class="btn btn-secondary">Load Sample Audio</button>
+          <div class="wave-pulse" id="asr-wave-pulse">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+          </div>
+          <span id="asr-status-text" style="font-size: 0.85rem; color: var(--text-muted);">Idle</span>
+        </div>
+
+        <div class="form-group">
+          <label>Transcribed Question</label>
+          <input type="text" id="asr-transcribed-text" placeholder="Speech transcription output...">
+        </div>
+        
+        <div style="font-size: 0.8rem; color: var(--text-muted);">
+          Inference: <span id="asr-infer-ms">--</span> (Mel: <span id="asr-mel-ms">--</span> | Dec: <span id="asr-dec-ms">--</span>)
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN: Outputs (LLM & TTS) -->
+    <div class="column">
+      
+      <!-- GROUNDED LLM PANEL -->
+      <div class="panel">
+        <div class="panel-title">
+          <span>3. Grounded Q&A LLM</span>
+          <span class="badge onnx">ONNX Web</span>
+          <span id="llm-status-badge" class="badge pending" style="margin-left: auto;">Not Loaded</span>
+        </div>
+
+        <div class="model-meta-row" style="display: flex; justify-content: space-between; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.6rem 0.8rem; margin-bottom: 1rem; font-size: 0.8rem; color: var(--text-muted);">
+          <div>Size: <span style="color: var(--text-main); font-weight: 500;">35 MB</span></div>
+          <div>Est. RAM: <span style="color: var(--text-main); font-weight: 500;">~150 MB</span></div>
+          <div>Load Time: <span id="llm-load-time" style="color: var(--text-main); font-weight: 500;">--</span></div>
+        </div>
+
+        <div class="row-split" style="margin-bottom: 1rem;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label>Model</label>
+            <div style="padding: 0.75rem 1rem; background: rgba(8, 10, 20, 0.5); border: 1px solid var(--border-color); border-radius: 10px; font-size: 0.95rem;">
+              SmolLM (135M) — Ultra-fast
+            </div>
+            <select id="llm-model-select" style="display: none;">
+              <option value="onnx-community/SmolLM-135M-Instruct-ONNX" selected>SmolLM (135M)</option>
+            </select>
+          </div>
+          <div style="display: flex; align-items: flex-end;">
+            <button id="llm-load-btn" class="btn" style="width: 100%;">Load Model</button>
+          </div>
+        </div>
+
+        <div class="progress-container" id="llm-progress-container">
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="llm-progress-bar-fill"></div>
+          </div>
+          <div class="progress-labels">
+            <span id="llm-progress-status">Downloading model files...</span>
+            <span id="llm-progress-pct">0%</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Context (Grounded Document)</label>
+          <textarea id="llm-context" placeholder="Populated from OCR or typed manually..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Question</label>
+          <input type="text" id="llm-question" placeholder="Populated from ASR or typed manually...">
+        </div>
+
+        <div class="pipeline-toggle">
+          <input type="checkbox" id="auto-pipeline-cb" checked>
+          <label for="auto-pipeline-cb" style="text-transform: none; font-size: 0.85rem; font-weight: normal; cursor: pointer; color: var(--text-main);">
+            Auto-trigger: Speak answer via TTS after LLM finishes
+          </label>
+        </div>
+
+        <button id="llm-generate-btn" class="btn" style="width: 100%; margin-bottom: 1rem;" disabled>Generate Answer</button>
+
+        <div class="form-group">
+          <label>Answer Output</label>
+          <textarea id="llm-answer-output" readonly placeholder="Grounded answer will appear here..." style="height: 80px;"></textarea>
+        </div>
+
+        <div class="row-split" style="font-size: 0.8rem; color: var(--text-muted); text-align: center;">
+          <div>Inference: <span id="llm-infer-time">--</span></div>
+          <div>Speed: <span id="llm-infer-speed">--</span></div>
+        </div>
+      </div>
+
+      <!-- KYUTAI POCKET TTS PANEL -->
+      <div class="panel">
+        <div class="panel-title">
+          <span>4. Speech Synthesis (TTS)</span>
+          <span class="badge onnx">ONNX Web</span>
+          <span id="tts-status-badge" class="badge pending" style="margin-left: auto;">Not Loaded</span>
+        </div>
+
+        <div class="model-meta-row" style="display: flex; justify-content: space-between; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.6rem 0.8rem; margin-bottom: 1rem; font-size: 0.8rem; color: var(--text-muted);">
+          <div>Size: <span style="color: var(--text-main); font-weight: 500;">~120 MB</span></div>
+          <div>Est. RAM: <span style="color: var(--text-main); font-weight: 500;">~300 MB</span></div>
+          <div>Load Time: <span id="tts-load-time" style="color: var(--text-main); font-weight: 500;">--</span></div>
+        </div>
+
+        <div class="row-split" style="margin-bottom: 1rem;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label>Language</label>
+            <div style="padding: 0.75rem 1rem; background: rgba(8, 10, 20, 0.5); border: 1px solid var(--border-color); border-radius: 10px; font-size: 0.95rem;">
+              English
+            </div>
+            <select id="tts-language-select" style="display: none;"></select>
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label>Voice</label>
+            <div style="padding: 0.75rem 1rem; background: rgba(8, 10, 20, 0.5); border: 1px solid var(--border-color); border-radius: 10px; font-size: 0.95rem;">
+              Alba (Female)
+            </div>
+            <select id="tts-voice-select" style="display: none;"></select>
+          </div>
+        </div>
+
+        <div class="row-split" style="margin-bottom: 1rem; align-items: center; justify-content: flex-end;">
+          <div id="tts-model-status" class="model-status" style="font-size: 0.8rem; text-align: right; color: var(--text-muted);">
+            <span class="model-status__dot"></span>
+            <span class="model-status__text">Loading...</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Text to Synthesize</label>
+          <textarea id="tts-text-input" placeholder="LLM answer is copied here..."></textarea>
+          <div style="font-size: 0.7rem; color: var(--text-muted); text-align: right;">
+            Characters: <span id="tts-char-count">0</span>
+          </div>
+        </div>
+
+        <div class="row-split" style="margin-bottom: 1rem;">
+          <button id="tts-generate-btn" class="btn" disabled>
+            <span id="tts-btn-loader" style="display: none; border: 2px solid transparent; border-top-color: #fff; border-radius: 50%; width: 14px; height: 14px; animation: status-pulse 1s infinite; margin-right: 6px;"></span>
+            <span class="btn__text">Generate Audio</span>
+          </button>
+          <button id="tts-stop-btn" class="btn btn-danger" disabled>Stop</button>
+        </div>
+
+        <div class="tts-stats-row">
+          <div class="tts-stat-card">
+            <div class="tts-stat-label">TTFB</div>
+            <div class="tts-stat-val"><span id="tts-stat-ttfb">--</span> ms</div>
+          </div>
+          <div class="tts-stat-card">
+            <div class="tts-stat-label">Realtime Factor</div>
+            <div id="tts-rtfx-context" class="tts-stat-val"><span id="tts-stat-rtfx">--</span></div>
+          </div>
+        </div>
+
+        <!-- Hidden progress elements to satisfy element mappings in onnx-streaming.js -->
+        <div id="tts-status-indicator" style="display: none;"></div>
+        <div id="tts-stat-status" style="display: none;"></div>
+        <div id="tts-ttfb-bar" style="display: none;"></div>
+        <button id="tts-download-audio-btn" style="display: none;"></button>
+
+        <div class="tts-visualizers">
+          <canvas id="tts-visualizer-bars"></canvas>
+          <canvas id="tts-visualizer-waveform"></canvas>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="footer">
+    Edge AI Studio Multimodal Pipeline powered by LiteRT.js & ONNX Runtime Web. 100% On-Device.
+  </div>
+
+  <!-- LOAD SCRIPTS -->
+  <script type="module">
+    // CDN imports
+    import { loadLiteRt, loadAndCompile, Tensor, getGlobalLiteRt } from 'https://cdn.jsdelivr.net/npm/@litertjs/core@2.5.2/+esm';
+    import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.1';
+
+    // Set HF cache rules
+    env.allowLocalModels = false;
+    env.backends.onnx.wasm.proxy = false;
+    env.backends.onnx.wasm.numThreads = 1;
+
+    // --- 1. LITERT.JS MULTI-THREAD RUNTIME INITIALIZATION ---
+    let runtimeReady = false;
+    async function initLiteRt() {
+      if (runtimeReady) return;
+      // Initialize LiteRT using local wasm binaries
+      await loadLiteRt('/wasm/', { threads: crossOriginIsolated });
+      
+      // Patch the Emscripten binding bug for LiteRT enums
+      const liteRtWasm = getGlobalLiteRt()?.liteRtWasm;
+      const bufferType = liteRtWasm?.LiteRtTensorBufferType;
+      if (bufferType?.values && bufferType.UNKNOWN === undefined) {
+        bufferType.UNKNOWN = bufferType.values[0];
+        bufferType.HOST_MEMORY = bufferType.values[1];
+        bufferType.WEB_GPU_BUFFER = bufferType.values[20];
+        bufferType.WEB_GPU_BUFFER_FP16 = bufferType.values[21];
+        bufferType.WEB_GPU_BUFFER_PACKED = bufferType.values[26];
+      }
+      runtimeReady = true;
+    }
+
+    // --- 2. DOCUMENT OCR IMPLEMENTATION (CRAFT + CRNN) ---
+    const DET_W = 416;
+    const DET_H = 640;
+    const MAP_W = 208;
+    const MAP_H = 320;
+    const TEXT_TH = 0.7;
+    const LOW_TEXT = 0.4;
+    const LINK_TH = 0.4;
+    const MIN_AREA = 10;
+
+    const REC_W = 200;
+    const REC_H = 31;
+    const REC_BATCH = 8;
+    const REC_CLASSES = 37;
+    const ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyz';
+    const BLANK = 36;
+
+    class DocOcr {
+      constructor(detector, recognizer) {
+        this.detector = detector;
+        this.recognizer = recognizer;
+        
+        this.detCanvas = document.createElement('canvas');
+        this.detCanvas.width = DET_W;
+        this.detCanvas.height = DET_H;
+        this.detCtx = this.detCanvas.getContext('2d', { willReadFrequently: true });
+        
+        this.recCanvas = document.createElement('canvas');
+        this.recCanvas.width = REC_W;
+        this.recCanvas.height = REC_H;
+        this.recCtx = this.recCanvas.getContext('2d', { willReadFrequently: true });
+        
+        this.detInput = new Float32Array(3 * DET_H * DET_W);
+        this.recInput = new Float32Array(REC_BATCH * REC_H * REC_W);
+      }
+
+      async run(source, onWord) {
+        const t0 = performance.now();
+        const boxes = await this.detect(source);
+        await new Promise((r) => setTimeout(r, 0));
+        const t1 = performance.now();
+
+        const words = [];
+        for (let start = 0; start < boxes.length; start += REC_BATCH) {
+          const batch = boxes.slice(start, start + REC_BATCH);
+          const texts = await this.recognizeBatch(source, batch);
+          for (let i = 0; i < batch.length; i++) {
+            const word = { ...batch[i], text: texts[i] };
+            if (word.text) words.push(word);
+            onWord?.(word, start + i + 1, boxes.length);
+          }
+          await new Promise((r) => setTimeout(r, 0));
+        }
+        const t2 = performance.now();
+
+        return {
+          words,
+          text: this.assembleLines(words),
+          detectMs: t1 - t0,
+          recognizeMs: t2 - t1,
+        };
+      }
+
+      async detect(source) {
+        this.detCtx.drawImage(source, 0, 0, DET_W, DET_H);
+        const px = this.detCtx.getImageData(0, 0, DET_W, DET_H).data;
+        const inp = this.detInput;
+        const plane = DET_H * DET_W;
+        for (let i = 0; i < plane; i++) {
+          const k = i * 4;
+          inp[i] = (px[k] / 255 - 0.485) / 0.229;
+          inp[plane + i] = (px[k + 1] / 255 - 0.456) / 0.224;
+          inp[2 * plane + i] = (px[k + 2] / 255 - 0.406) / 0.225;
+        }
+
+        const inputTensor = new Tensor(inp, [1, 3, DET_H, DET_W]);
+        let maps;
+        try {
+          const outputs = await this.detector.run([inputTensor]);
+          maps = await outputs[0].data();
+          outputs.forEach((t) => t.delete());
+        } finally {
+          inputTensor.delete();
+        }
+
+        return this.componentBoxes(maps, source.width, source.height);
+      }
+
+      async recognizeBatch(source, boxes) {
+        const inp = this.recInput;
+        inp.fill(0);
+        const laneSize = REC_H * REC_W;
+
+        for (let lane = 0; lane < boxes.length; lane++) {
+          const box = boxes[lane];
+          const w = box.x1 - box.x0;
+          const h = box.y1 - box.y0;
+          if (w < 2 || h < 2) continue;
+
+          const nw = Math.max(1, Math.min(REC_W, Math.round((w * REC_H) / h)));
+          this.recCtx.fillStyle = '#000';
+          this.recCtx.fillRect(0, 0, REC_W, REC_H);
+          this.recCtx.drawImage(source, box.x0, box.y0, w, h, 0, 0, nw, REC_H);
+
+          const px = this.recCtx.getImageData(0, 0, REC_W, REC_H).data;
+          const base = lane * laneSize;
+          for (let i = 0; i < laneSize; i++) {
+            const k = i * 4;
+            inp[base + i] = (0.299 * px[k] + 0.587 * px[k + 1] + 0.114 * px[k + 2]) / 255;
+          }
+        }
+
+        const inputTensor = new Tensor(inp, [REC_BATCH, REC_H, REC_W, 1]);
+        let logits;
+        try {
+          const outputs = await this.recognizer.run([inputTensor]);
+          logits = await outputs[0].data();
+          outputs.forEach((t) => t.delete());
+        } finally {
+          inputTensor.delete();
+        }
+
+        const stepSize = (logits.length / REC_BATCH) | 0;
+        return boxes.map((_, lane) =>
+          this.greedyCtc(logits.subarray(lane * stepSize, (lane + 1) * stepSize))
+        );
+      }
+
+      componentBoxes(maps, srcW, srcH) {
+        const n = MAP_H * MAP_W;
+        const binary = new Uint8Array(n);
+        for (let i = 0; i < n; i++) {
+          if (maps[i * 2] > LOW_TEXT || maps[i * 2 + 1] > LINK_TH) binary[i] = 1;
+        }
+
+        const labels = new Int32Array(n);
+        const stack = [];
+        const boxes = [];
+        const sx = (srcW / DET_W) * 2;
+        const sy = (srcH / DET_H) * 2;
+        let nextLabel = 0;
+
+        for (let seed = 0; seed < n; seed++) {
+          if (!binary[seed] || labels[seed]) continue;
+          nextLabel++;
+          labels[seed] = nextLabel;
+          stack.push(seed);
+          let minX = MAP_W;
+          let minY = MAP_H;
+          let maxX = 0;
+          let maxY = 0;
+          let maxRegion = 0;
+          let area = 0;
+
+          while (stack.length) {
+            const idx = stack.pop();
+            const y = (idx / MAP_W) | 0;
+            const x = idx % MAP_W;
+            area++;
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+            const region = maps[idx * 2];
+            if (region > maxRegion) maxRegion = region;
+
+            if (x > 0 && binary[idx - 1] && !labels[idx - 1]) { labels[idx - 1] = nextLabel; stack.push(idx - 1); }
+            if (x < MAP_W - 1 && binary[idx + 1] && !labels[idx + 1]) { labels[idx + 1] = nextLabel; stack.push(idx + 1); }
+            if (y > 0 && binary[idx - MAP_W] && !labels[idx - MAP_W]) { labels[idx - MAP_W] = nextLabel; stack.push(idx - MAP_W); }
+            if (y < MAP_H - 1 && binary[idx + MAP_W] && !labels[idx + MAP_W]) { labels[idx + MAP_W] = nextLabel; stack.push(idx + MAP_W); }
+          }
+
+          if (area < MIN_AREA || maxRegion < TEXT_TH) continue;
+          const pad = 2;
+          boxes.push({
+            x0: Math.max(0, (minX - pad) * sx),
+            y0: Math.max(0, (minY - pad) * sy),
+            x1: Math.min(srcW, (maxX + 1 + pad) * sx),
+            y1: Math.min(srcH, (maxY + 1 + pad) * sy),
+          });
+        }
+        return boxes;
+      }
+
+      greedyCtc(logits) {
+        const steps = logits.length / REC_CLASSES;
+        let out = '';
+        let prev = -1;
+        for (let t = 0; t < steps; t++) {
+          const o = t * REC_CLASSES;
+          let best = 0;
+          let bestV = logits[o];
+          for (let c = 1; c < REC_CLASSES; c++) {
+            if (logits[o + c] > bestV) {
+              bestV = logits[o + c];
+              best = c;
+            }
+          }
+          if (best !== prev && best !== BLANK) out += ALPHABET[best];
+          prev = best;
+        }
+        return out;
+      }
+
+      assembleLines(words) {
+        if (!words.length) return '';
+        const sorted = [...words].sort((a, b) => (a.y0 + a.y1) / 2 - (b.y0 + b.y1) / 2);
+        const lines = [];
+        let current = [];
+        let currentY = null;
+
+        for (const word of sorted) {
+          const cy = (word.y0 + word.y1) / 2;
+          const h = word.y1 - word.y0;
+          if (currentY === null || Math.abs(cy - currentY) < h * 0.6) {
+            current.push(word);
+            currentY = currentY === null ? cy : (currentY + cy) / 2;
+          } else {
+            lines.push(current);
+            current = [word];
+            currentY = cy;
+          }
+        }
+        lines.push(current);
+
+        return lines
+          .map((line) => line.sort((a, b) => a.x0 - b.x0).map((w) => w.text).join(' '))
+          .join('\n');
+      }
+    }
+
+    // --- 3. SPEECH TRANSCRIBER IMPLEMENTATION (ASR) ---
+    const SR = 16000;
+    const N_FFT = 400;
+    const HOP = 160;
+    const N_MELS = 80;
+    const N_BINS = N_FFT / 2 + 1;
+    const N_FRAMES = 3000;
+    const SOT = 50258;
+    const EN = 50259;
+    const TRANSCRIBE = 50359;
+    const NOTS = 50363;
+    const EOT = 50257;
+    const VOCAB = 51865;
+    const MAX_TOKENS = 32;
+
+    class Asr {
+      constructor() {
+        this.mel = null;
+        this.cosT = null;
+        this.sinT = null;
+        this.id2tok = [];
+        this.byteDec = {};
+        this.ready = false;
+        this.recorder = null;
+        this.chunks = [];
+        this.stream = null;
+      }
+
+      async init(onStatus) {
+        if (this.ready) return;
+        onStatus?.('Loading tokenizer & filters...');
+        const [melBuf, tk] = await Promise.all([
+          fetch('/asr/mel_filters_80.bin').then((r) => r.arrayBuffer()),
+          fetch('/asr/whisper_tokenizer.json').then((r) => r.json()),
+        ]);
+        this.mel = new Float32Array(melBuf);
+
+        // Precompute DFT basis
+        this.cosT = new Float32Array(N_BINS * N_FFT);
+        this.sinT = new Float32Array(N_BINS * N_FFT);
+        for (let k = 0; k < N_BINS; k++) {
+          for (let n = 0; n < N_FFT; n++) {
+            const a = (2 * Math.PI * k * n) / N_FFT;
+            this.cosT[k * N_FFT + n] = Math.cos(a);
+            this.sinT[k * N_FFT + n] = Math.sin(a);
+          }
+        }
+
+        // Tokenizer setup
+        this.id2tok = new Array(VOCAB).fill('');
+        for (const [tok, id] of Object.entries(tk.model.vocab)) this.id2tok[id] = tok;
+        for (const a of tk.added_tokens ?? []) this.id2tok[a.id] = a.content;
+        this.byteDec = this.buildByteDecoder();
+        this.ready = true;
+      }
+
+      buildByteDecoder() {
+        const bs = [];
+        for (let i = 33; i <= 126; i++) bs.push(i);
+        for (let i = 161; i <= 172; i++) bs.push(i);
+        for (let i = 174; i <= 255; i++) bs.push(i);
+        const cs = bs.slice();
+        let n = 0;
+        for (let b = 0; b < 256; b++) {
+          if (!bs.includes(b)) {
+            bs.push(b);
+            cs.push(256 + n);
+            n++;
+          }
+        }
+        const dec = {};
+        for (let i = 0; i < bs.length; i++) dec[String.fromCharCode(cs[i])] = bs[i];
+        return dec;
+      }
+
+      async startMic() {
+        this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        this.chunks = [];
+        this.recorder = new MediaRecorder(this.stream);
+        this.recorder.ondataavailable = (e) => {
+          if (e.data.size) this.chunks.push(e.data);
+        };
+        this.recorder.start();
+      }
+
+      async stopMic() {
+        const rec = this.recorder;
+        if (!rec) throw new Error('Not recording');
+        const done = new Promise((resolve) => (rec.onstop = () => resolve()));
+        rec.stop();
+        await done;
+        this.stream?.getTracks().forEach((t) => t.stop());
+        this.stream = null;
+        this.recorder = null;
+
+        const blob = new Blob(this.chunks, { type: this.chunks[0]?.type || 'audio/webm' });
+        const ctx = new AudioContext();
+        const audioBuf = await ctx.decodeAudioData(await blob.arrayBuffer());
+        const audio = audioBuf.getChannelData(0).slice();
+        const sr = audioBuf.sampleRate;
+        await ctx.close();
+        return { audio, sampleRate: sr };
+      }
+
+      async transcribe(audio, sampleRate, model) {
+        const t0 = performance.now();
+        const mel = this.logMel(this.resampleTo16k(audio, sampleRate));
+        const t1 = performance.now();
+
+        const enc = await this.runSig(model, 'encode', [new Tensor(mel, [1, N_MELS, N_FRAMES])]);
+        const t2 = performance.now();
+
+        const mask = this.causalMask();
+        const tokens = [SOT, EN, TRANSCRIBE, NOTS];
+        for (let step = 0; step < MAX_TOKENS; step++) {
+          const ids = new Int32Array(128);
+          ids.set(tokens.slice(0, 128));
+          const logits = await this.runSig(model, 'decode', [
+            new Tensor(enc.slice(), [1, 1500, 384]),
+            new Tensor(ids, [1, 128]),
+            new Tensor(mask.slice(), [1, 1, 128, 128]),
+          ]);
+          const off = (tokens.length - 1) * VOCAB;
+          let best = 0;
+          let bv = logits[off];
+          for (let c = 1; c < VOCAB; c++) {
+            const v = logits[off + c];
+            if (v > bv) {
+              bv = v;
+              best = c;
+            }
+          }
+          if (best === EOT) break;
+          tokens.push(best);
+        }
+        const t3 = performance.now();
+
+        return {
+          text: this.decodeText(tokens.slice(4)),
+          ms: t3 - t0,
+          breakdown: { melMs: t1 - t0, encMs: t2 - t1, decMs: t3 - t2, tokens: tokens.length - 4 },
+        };
+      }
+
+      async runSig(model, sig, inputs) {
+        const outputs = await model.run(sig, inputs);
+        const data = await outputs[0].data();
+        inputs.forEach((t) => t.delete());
+        outputs.forEach((t) => t.delete());
+        return data;
+      }
+
+      logMel(audio) {
+        const pad = N_FFT / 2;
+        const padded = new Float32Array(audio.length + 2 * pad);
+        padded.set(audio, pad);
+        for (let i = 0; i < pad; i++) {
+          padded[pad - 1 - i] = audio[i + 1] ?? 0;
+          padded[pad + audio.length + i] = audio[audio.length - 2 - i] ?? 0;
+        }
+        const win = new Float32Array(N_FFT);
+        for (let i = 0; i < N_FFT; i++) win[i] = 0.5 - 0.5 * Math.cos((2 * Math.PI * i) / N_FFT);
+
+        const power = new Float32Array(N_FRAMES * N_BINS);
+        const frame = new Float32Array(N_FFT);
+        for (let t = 0; t < N_FRAMES; t++) {
+          const start = t * HOP;
+          for (let n = 0; n < N_FFT; n++) frame[n] = padded[start + n] * win[n];
+          for (let k = 0; k < N_BINS; k++) {
+            let re = 0;
+            let im = 0;
+            const kb = k * N_FFT;
+            for (let n = 0; n < N_FFT; n++) {
+              re += frame[n] * this.cosT[kb + n];
+              im += frame[n] * this.sinT[kb + n];
+            }
+            power[t * N_BINS + k] = re * re + im * im;
+          }
+        }
+
+        const out = new Float32Array(N_MELS * N_FRAMES);
+        let maxLog = -Infinity;
+        for (let m = 0; m < N_MELS; m++) {
+          const mb = m * N_BINS;
+          for (let t = 0; t < N_FRAMES; t++) {
+            let s = 0;
+            const pb = t * N_BINS;
+            for (let k = 0; k < N_BINS; k++) s += this.mel[mb + k] * power[pb + k];
+            const v = Math.log10(Math.max(s, 1e-10));
+            out[m * N_FRAMES + t] = v;
+            if (v > maxLog) maxLog = v;
+          }
+        }
+        const floor = maxLog - 8.0;
+        for (let i = 0; i < out.length; i++) out[i] = (Math.max(out[i], floor) + 4.0) / 4.0;
+        return out;
+      }
+
+      causalMask() {
+        const m = new Float32Array(128 * 128);
+        for (let i = 0; i < 128; i++) for (let j = i + 1; j < 128; j++) m[i * 128 + j] = -1e9;
+        return m;
+      }
+
+      resampleTo16k(audio, sr) {
+        let a = audio;
+        if (sr !== SR) {
+          const outLen = Math.round((audio.length * SR) / sr);
+          a = new Float32Array(outLen);
+          const ratio = (audio.length - 1) / (outLen - 1 || 1);
+          for (let i = 0; i < outLen; i++) {
+            const x = i * ratio;
+            const i0 = Math.floor(x);
+            const frac = x - i0;
+            a[i] = audio[i0] * (1 - frac) + (audio[i0 + 1] ?? audio[i0]) * frac;
+          }
+        }
+        const need = N_FRAMES * HOP;
+        const out = new Float32Array(need);
+        out.set(a.subarray(0, need));
+        return out;
+      }
+
+      decodeText(ids) {
+        let s = '';
+        for (const id of ids) if (id < EOT) s += this.id2tok[id] ?? '';
+        const bytes = new Uint8Array(s.length);
+        let n = 0;
+        for (const ch of s) {
+          const b = this.byteDec[ch];
+          if (b !== undefined) bytes[n++] = b;
+        }
+        return new TextDecoder('utf-8', { fatal: false }).decode(bytes.subarray(0, n)).trim();
+      }
+    }
+
+    // --- 4. COORDINATOR SETUP & EVENT HANDLERS ---
+    let ocrDetector = null;
+    let ocrRecognizer = null;
+    let asrModel = null;
+    let llmPipeline = null;
+
+    const docOcrRunner = new DocOcr(null, null);
+    const asrTranscriber = new Asr();
+
+    // DOM References
+    const ocrDropzone = document.getElementById('ocr-dropzone');
+    const ocrFileInput = document.getElementById('ocr-file-input');
+    const ocrCanvas = document.getElementById('ocr-canvas');
+    const ocrPreviewContainer = document.getElementById('ocr-preview-container');
+    const ocrRunBtn = document.getElementById('ocr-run-btn');
+    const ocrSampleBtn = document.getElementById('ocr-sample-btn');
+    const ocrExtractedText = document.getElementById('ocr-extracted-text');
+    const ocrDetectMs = document.getElementById('ocr-detect-ms');
+    const ocrRecognizeMs = document.getElementById('ocr-recognize-ms');
+
+    const asrRecordBtn = document.getElementById('asr-record-btn');
+    const asrSampleBtn = document.getElementById('asr-sample-btn');
+    const asrTranscribedText = document.getElementById('asr-transcribed-text');
+    const asrWavePulse = document.getElementById('asr-wave-pulse');
+    const asrStatusText = document.getElementById('asr-status-text');
+    const asrInferMs = document.getElementById('asr-infer-ms');
+    const asrMelMs = document.getElementById('asr-mel-ms');
+    const asrDecMs = document.getElementById('asr-dec-ms');
+
+    const llmModelSelect = document.getElementById('llm-model-select');
+    const llmLoadBtn = document.getElementById('llm-load-btn');
+    const llmGenerateBtn = document.getElementById('llm-generate-btn');
+    const llmContext = document.getElementById('llm-context');
+    const llmQuestion = document.getElementById('llm-question');
+    const llmAnswerOutput = document.getElementById('llm-answer-output');
+    const llmInferTime = document.getElementById('llm-infer-time');
+    const llmInferSpeed = document.getElementById('llm-infer-speed');
+    const llmProgressContainer = document.getElementById('llm-progress-container');
+    const llmProgressBarFill = document.getElementById('llm-progress-bar-fill');
+    const llmProgressStatus = document.getElementById('llm-progress-status');
+    const llmProgressPct = document.getElementById('llm-progress-pct');
+    const autoPipelineCb = document.getElementById('auto-pipeline-cb');
+
+    const ttsTextInput = document.getElementById('tts-text-input');
+
+    // Drag & Drop
+    ocrDropzone.addEventListener('click', () => ocrFileInput.click());
+    ocrDropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      ocrDropzone.style.borderColor = 'var(--primary)';
+    });
+    ocrDropzone.addEventListener('dragleave', () => {
+      ocrDropzone.style.borderColor = 'var(--border-color)';
+    });
+    ocrDropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      ocrDropzone.style.borderColor = 'var(--border-color)';
+      const file = e.dataTransfer.files[0];
+      if (file) handleImageUpload(file);
+    });
+    ocrFileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) handleImageUpload(file);
+    });
+
+    let uploadedImage = null;
+
+    function handleImageUpload(file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          uploadedImage = img;
+          const ctx = ocrCanvas.getContext('2d');
+          ocrCanvas.width = img.width;
+          ocrCanvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+          ocrPreviewContainer.style.display = 'flex';
+          ocrRunBtn.disabled = false;
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // --- Heap Size Monitor ---
+    function updateHeapSize() {
+      const heapEl = document.getElementById('global-heap-size');
+      if (heapEl && performance.memory) {
+        const heapSizeMb = (performance.memory.usedJSHeapSize / (1024 * 1024)).toFixed(1);
+        heapEl.textContent = `${heapSizeMb} MB`;
+      } else if (heapEl) {
+        heapEl.textContent = 'N/A';
+      }
+    }
+    setInterval(updateHeapSize, 2000);
+    updateHeapSize();
+
+    // --- Component Loading Logic ---
+    async function loadOcr() {
+      const statusBadge = document.getElementById('ocr-status-badge');
+      const loadTimeEl = document.getElementById('ocr-load-time');
+      if (ocrDetector && ocrRecognizer) return;
+      
+      statusBadge.textContent = 'Loading...';
+      statusBadge.className = 'badge pending';
+      const startTime = performance.now();
+      
+      await initLiteRt();
+      if (!ocrDetector) {
+        ocrDetector = await loadAndCompile('/models/craft_float_640.tflite', { accelerator: 'wasm' });
+      }
+      if (!ocrRecognizer) {
+        ocrRecognizer = await loadAndCompile('/models/keras_ocr_unrolled_b8_fp16.tflite', { accelerator: 'wasm' });
+      }
+      
+      const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
+      loadTimeEl.textContent = `${elapsed}s`;
+      statusBadge.textContent = 'Loaded';
+      statusBadge.className = 'badge ready';
+    }
+
+    async function loadAsr() {
+      const statusBadge = document.getElementById('asr-status-badge');
+      const loadTimeEl = document.getElementById('asr-load-time');
+      if (asrModel) return;
+      
+      statusBadge.textContent = 'Loading...';
+      statusBadge.className = 'badge pending';
+      const startTime = performance.now();
+      
+      await initLiteRt();
+      if (!asrModel) {
+        asrModel = await loadAndCompile('https://huggingface.co/litert-community/whisper-tiny/resolve/main/whisper_tiny_30s_f32.tflite', { accelerator: 'wasm' });
+      }
+      await asrTranscriber.init((m) => { asrStatusText.textContent = m; });
+      
+      const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
+      loadTimeEl.textContent = `${elapsed}s`;
+      statusBadge.textContent = 'Loaded';
+      statusBadge.className = 'badge ready';
+    }
+
+    async function loadLlm() {
+      const statusBadge = document.getElementById('llm-status-badge');
+      const loadTimeEl = document.getElementById('llm-load-time');
+      if (llmPipeline) return;
+      
+      statusBadge.textContent = 'Loading...';
+      statusBadge.className = 'badge pending';
+      llmLoadBtn.disabled = true;
+      llmProgressContainer.style.display = 'block';
+      llmProgressStatus.textContent = 'Connecting...';
+      
+      const startTime = performance.now();
+      const modelId = llmModelSelect.value;
+      try {
+        llmPipeline = await pipeline('text-generation', modelId, {
+          dtype: 'q4',
+          device: 'wasm',
+          progress_callback: (progress) => {
+            if (progress.status === 'downloading') {
+              const file = progress.file;
+              const loaded = progress.loaded;
+              const total = progress.total;
+              if (total) {
+                const pct = Math.round((loaded / total) * 100);
+                llmProgressBarFill.style.width = `${pct}%`;
+                llmProgressPct.textContent = `${pct}%`;
+                llmProgressStatus.textContent = `Downloading ${file}...`;
+              }
+            }
+          }
+        });
+        
+        const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
+        loadTimeEl.textContent = `${elapsed}s`;
+        statusBadge.textContent = 'Loaded';
+        statusBadge.className = 'badge ready';
+        llmProgressContainer.style.display = 'none';
+        llmGenerateBtn.disabled = false;
+        llmLoadBtn.textContent = 'Loaded';
+      } catch (err) {
+        statusBadge.textContent = 'Error';
+        statusBadge.className = 'badge pending';
+        llmLoadBtn.disabled = false;
+        throw err;
+      }
+    }
+
+    // Run OCR
+    ocrRunBtn.addEventListener('click', async () => {
+      if (!uploadedImage) return;
+      ocrRunBtn.disabled = true;
+      ocrExtractedText.value = 'Running CRAFT Text Detector...';
+      
+      try {
+        await loadOcr();
+        
+        docOcrRunner.detector = ocrDetector;
+        docOcrRunner.recognizer = ocrRecognizer;
+
+        const ctx = ocrCanvas.getContext('2d');
+        ctx.drawImage(uploadedImage, 0, 0); // Reset visual overlay
+        
+        const result = await docOcrRunner.run(ocrCanvas, (word) => {
+          // progressive box rendering
+          ctx.strokeStyle = '#06b6d4';
+          ctx.lineWidth = 3;
+          ctx.strokeRect(word.x0, word.y0, word.x1 - word.x0, word.y1 - word.y0);
+        });
+
+        ocrExtractedText.value = result.text;
+        ocrDetectMs.textContent = `${Math.round(result.detectMs)}ms`;
+        ocrRecognizeMs.textContent = `${Math.round(result.recognizeMs)}ms`;
+        
+        // Copy to LLM Context
+        llmContext.value = result.text;
+        llmContext.dispatchEvent(new Event('input'));
+        
+        // Auto-run LLM if auto-pipeline is enabled and question is populated
+        if (autoPipelineCb.checked && llmQuestion.value.trim() !== '') {
+          llmGenerateBtn.click();
+        }
+
+      } catch (err) {
+        console.error(err);
+        ocrExtractedText.value = `OCR Error: ${err.message}`;
+      } finally {
+        ocrRunBtn.disabled = false;
+      }
+    });
+
+    // ASR Record Control
+    let recording = false;
+    asrRecordBtn.addEventListener('click', async () => {
+      if (recording) {
+        // Stop Mic
+        recording = false;
+        asrRecordBtn.textContent = 'Transcribing...';
+        asrRecordBtn.disabled = true;
+        asrStatusText.textContent = 'Transcribing audio...';
+        asrWavePulse.classList.remove('recording');
+
+        try {
+          const { audio, sampleRate } = await asrTranscriber.stopMic();
+          
+          await loadAsr();
+
+          const result = await asrTranscriber.transcribe(audio, sampleRate, asrModel);
+          
+          asrTranscribedText.value = result.text;
+          asrInferMs.textContent = `${Math.round(result.ms)}ms`;
+          asrMelMs.textContent = `${Math.round(result.breakdown.melMs)}ms`;
+          asrDecMs.textContent = `${Math.round(result.breakdown.decMs)}ms`;
+          asrStatusText.textContent = 'Transcription ready';
+
+          // Copy to LLM Question
+          llmQuestion.value = result.text;
+          llmQuestion.dispatchEvent(new Event('input'));
+
+          // Auto-run LLM if auto-pipeline is enabled and context is populated
+          if (autoPipelineCb.checked && llmContext.value.trim() !== '') {
+            llmGenerateBtn.click();
+          }
+
+        } catch (err) {
+          console.error(err);
+          asrStatusText.textContent = `ASR Error: ${err.message}`;
+        } finally {
+          asrRecordBtn.textContent = 'Record Voice Question';
+          asrRecordBtn.disabled = false;
+        }
+
+      } else {
+        // Start Mic
+        try {
+          await loadAsr();
+          await asrTranscriber.startMic();
+          recording = true;
+          asrRecordBtn.textContent = 'Stop Recording';
+          asrStatusText.textContent = 'Listening... Speak now';
+          asrWavePulse.classList.add('recording');
+        } catch (err) {
+          console.error(err);
+          asrStatusText.textContent = `Mic Error: ${err.message}`;
+        }
+      }
+    });
+
+    // LLM Load
+    llmLoadBtn.addEventListener('click', async () => {
+      try {
+        await loadLlm();
+      } catch (err) {
+        console.error(err);
+        llmProgressStatus.textContent = `Load Error: ${err.message}`;
+      }
+    });
+
+    // LLM Generate
+    llmGenerateBtn.addEventListener('click', async () => {
+      if (!llmPipeline) return;
+      const context = llmContext.value.trim();
+      const question = llmQuestion.value.trim();
+
+      if (!context || !question) {
+        alert('Please fill in both Context and Question.');
+        return;
+      }
+
+      llmGenerateBtn.disabled = true;
+      llmAnswerOutput.value = 'Thinking...';
+      const startInference = performance.now();
+
+      const messages = [
+        { 
+          role: "system", 
+          content: "You are a precise document Q&A assistant. Answer the user's question accurately using ONLY the information provided in the Context. If the context does not contain the answer, say 'Information not found'." 
+        },
+        { 
+          role: "user", 
+          content: `Context:\n${context}\n\nQuestion: ${question}` 
+        }
+      ];
+
+      try {
+        const output = await llmPipeline(messages, {
+          max_new_tokens: 100,
+          temperature: 0.1,
+          do_sample: false
+        });
+
+        const elapsed = performance.now() - startInference;
+        const generated = output[0].generated_text.at(-1).content;
+        llmAnswerOutput.value = generated;
+
+        const tokenCount = generated.length / 4.0;
+        const tokensPerSec = (tokenCount / (elapsed / 1000)).toFixed(1);
+
+        llmInferTime.textContent = `${(elapsed / 1000).toFixed(2)}s`;
+        llmInferSpeed.textContent = `${tokensPerSec} tok/s`;
+
+        // Copy to TTS input
+        ttsTextInput.value = generated;
+        ttsTextInput.dispatchEvent(new Event('input'));
+
+        // Trigger TTS if enabled
+        if (autoPipelineCb.checked && window.app && window.app.isWorkerReady) {
+          window.app.startGeneration();
+        }
+
+      } catch (err) {
+        console.error(err);
+        llmAnswerOutput.value = `Error: ${err.message}`;
+      } finally {
+        llmGenerateBtn.disabled = false;
+      }
+    });
+
+    // --- Global Load All Models Event ---
+    const loadAllBtn = document.getElementById('load-all-btn');
+    const globalStatusText = document.getElementById('global-load-status');
+
+    loadAllBtn.addEventListener('click', async () => {
+      loadAllBtn.disabled = true;
+      loadAllBtn.querySelector('span').textContent = 'Loading All...';
+      globalStatusText.textContent = 'Loading models sequentially to avoid worker thread congestion...';
+
+      const startTime = performance.now();
+      try {
+        // 1. Load OCR
+        globalStatusText.textContent = 'Loading OCR models (CRAFT + CRNN)...';
+        await loadOcr();
+
+        // 2. Load ASR
+        globalStatusText.textContent = 'Loading Speech-to-Text model (Whisper)...';
+        await loadAsr();
+
+        // 3. Load LLM
+        globalStatusText.textContent = 'Loading Grounded Q&A LLM (SmolLM-135M)...';
+        await loadLlm();
+
+        // 4. Wait for TTS
+        globalStatusText.textContent = 'Waiting for Speech Synthesis model (Mimi + FlowLM)...';
+        while (!window.app || !window.app.isWorkerReady) {
+          await new Promise((resolve) => setTimeout(resolve, 200));
+        }
+
+        const totalElapsed = ((performance.now() - startTime) / 1000).toFixed(2);
+        globalStatusText.textContent = `All models successfully loaded in ${totalElapsed}s! Ready for offline inference.`;
+        loadAllBtn.querySelector('span').textContent = 'All Models Ready';
+        loadAllBtn.style.background = 'linear-gradient(135deg, var(--accent-green) 0%, #059669 100%)';
+        
+        // Re-enable OCR run button if image is uploaded
+        ocrRunBtn.disabled = !uploadedImage;
+      } catch (err) {
+        console.error(err);
+        globalStatusText.textContent = `Error loading models: ${err.message}`;
+        loadAllBtn.disabled = false;
+        loadAllBtn.querySelector('span').textContent = 'Retry Load All';
+      }
+    });
+
+    // Load Sample Doc
+    ocrSampleBtn.addEventListener('click', () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 640;
+      canvas.height = 360;
+      const ctx = canvas.getContext('2d');
+      
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      ctx.fillStyle = '#f9fafb';
+      ctx.fillRect(15, 15, canvas.width - 30, canvas.height - 30);
+      
+      ctx.fillStyle = '#111827';
+      ctx.font = 'bold 24px monospace';
+      ctx.fillText('EDGE AI MEMORANDUM', 40, 60);
+      
+      ctx.fillStyle = '#4b5563';
+      ctx.font = '16px monospace';
+      
+      ctx.fillText('Core Objective:', 40, 120);
+      ctx.fillStyle = '#111827';
+      ctx.fillText('Edge AI Studio runs neural networks on user devices.', 40, 150);
+      ctx.fillText('This system uses LiteRT.js for processing text and audio.', 40, 180);
+      ctx.fillText('All computations occur locally inside the web browser.', 40, 210);
+      ctx.fillText('No data is sent over the network to external servers.', 40, 240);
+      
+      const img = new Image();
+      img.onload = () => {
+        uploadedImage = img;
+        const ocrCtx = ocrCanvas.getContext('2d');
+        ocrCanvas.width = img.width;
+        ocrCanvas.height = img.height;
+        ocrCtx.drawImage(img, 0, 0);
+        ocrPreviewContainer.style.display = 'flex';
+        ocrRunBtn.disabled = false;
+        
+        if (autoPipelineCb.checked) {
+          ocrRunBtn.click();
+        }
+      };
+      img.src = canvas.toDataURL();
+    });
+
+    // Load Sample Audio
+    asrSampleBtn.addEventListener('click', async () => {
+      asrStatusText.textContent = 'Fetching sample.wav...';
+      try {
+        const response = await fetch('./asr/sample.wav');
+        const arrayBuffer = await response.arrayBuffer();
+        
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+        const float32Data = audioBuffer.getChannelData(0);
+        const sampleRate = audioBuffer.sampleRate;
+        await audioCtx.close();
+        
+        asrStatusText.textContent = 'Transcribing sample...';
+        await loadAsr();
+        
+        const result = await asrTranscriber.transcribe(float32Data, sampleRate, asrModel);
+        
+        asrTranscribedText.value = result.text;
+        asrInferMs.textContent = `${Math.round(result.ms)}ms`;
+        asrMelMs.textContent = `${Math.round(result.breakdown.melMs)}ms`;
+        asrDecMs.textContent = `${Math.round(result.breakdown.decMs)}ms`;
+        asrStatusText.textContent = 'Sample transcription ready';
+        
+        llmQuestion.value = result.text;
+        llmQuestion.dispatchEvent(new Event('input'));
+        
+        if (autoPipelineCb.checked && llmContext.value.trim() !== '') {
+          llmGenerateBtn.click();
+        }
+      } catch (err) {
+        console.error(err);
+        asrStatusText.textContent = `Sample Error: ${err.message}`;
+      }
+    });
+
+    // Pre-populate with default/dummy values for quick testing
+    llmContext.value = "The target of Edge AI Studio is to run high-performance AI models locally in the web browser. It is built using LiteRT.js and ONNX Runtime Web. User data is kept private.";
+    llmQuestion.value = "What is the target of Edge AI Studio?";
+    ttsTextInput.value = "The target of Edge AI Studio is to run high-performance AI models locally in the web browser.";
+
+    // --- Light/Dark Theme Toggle ---
+    const themeToggleBtn = document.getElementById('theme-toggle-btn');
+    const htmlEl = document.documentElement;
+
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    htmlEl.setAttribute('data-theme', savedTheme);
+
+    themeToggleBtn.addEventListener('click', () => {
+      const currentTheme = htmlEl.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      htmlEl.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+    });
+  </script>
+
+  <!-- LOAD TTS SCRIPTS -->
+  <script type="module" src="./onnx-streaming.js"></script>
+
+</body>
+</html>
