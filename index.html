@@ -106,19 +106,12 @@
     }
 
     .studio-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+      display: flex;
+      flex-direction: column;
       gap: 1.5rem;
-      max-width: 1400px;
+      max-width: 1000px;
       width: 100%;
       margin: 0 auto;
-      align-items: start;
-    }
-
-    @media (max-width: 1024px) {
-      .studio-grid {
-        grid-template-columns: 1fr;
-      }
     }
 
     .panel {
@@ -547,7 +540,8 @@
           <span id="ocr-status-badge" class="badge pending" style="margin-left: auto;">Not Loaded</span>
         </div>
         
-        <div class="model-meta-row" style="display: flex; justify-content: space-between; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.6rem 0.8rem; margin-bottom: 1rem; font-size: 0.8rem; color: var(--text-muted);">
+        <div class="model-meta-row" style="display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: space-between; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.6rem 0.8rem; margin-bottom: 1rem; font-size: 0.8rem; color: var(--text-muted);">
+          <div>Model: <span style="color: var(--text-main); font-weight: 600;">CRAFT (Detect) & CRNN (Recognize)</span></div>
           <div>Size: <span style="color: var(--text-main); font-weight: 500;">57 MB</span></div>
           <div>Est. RAM: <span style="color: var(--text-main); font-weight: 500;">~120 MB</span></div>
           <div>Load Time: <span id="ocr-load-time" style="color: var(--text-main); font-weight: 500;">--</span></div>
@@ -563,8 +557,9 @@
         </div>
 
         <div class="row-split" style="margin-bottom: 1rem; display: flex; gap: 0.5rem; align-items: stretch;">
-          <button id="ocr-run-btn" class="btn" disabled style="flex: 1;">Run OCR Pipeline</button>
-          <button id="ocr-sample-btn" class="btn btn-secondary" style="flex: 1;">Load Sample Doc</button>
+          <button id="ocr-run-btn" class="btn" disabled style="flex: 1.5;">Run OCR Pipeline</button>
+          <button id="ocr-sample-btn" class="btn btn-secondary" style="flex: 1;">Sample 1 (Memo)</button>
+          <button id="ocr-sample2-btn" class="btn btn-secondary" style="flex: 1;">Sample 2 (Invoice)</button>
           <div id="ocr-time" style="font-size: 0.8rem; color: var(--text-muted); display: flex; flex-direction: column; justify-content: center; min-width: 90px; text-align: right;">
             <div>Detect: <span id="ocr-detect-ms">--</span></div>
             <div>Recog: <span id="ocr-recognize-ms">--</span></div>
@@ -585,7 +580,8 @@
           <span id="asr-status-badge" class="badge pending" style="margin-left: auto;">Not Loaded</span>
         </div>
 
-        <div class="model-meta-row" style="display: flex; justify-content: space-between; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.6rem 0.8rem; margin-bottom: 1rem; font-size: 0.8rem; color: var(--text-muted);">
+        <div class="model-meta-row" style="display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: space-between; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.6rem 0.8rem; margin-bottom: 1rem; font-size: 0.8rem; color: var(--text-muted);">
+          <div>Model: <span style="color: var(--text-main); font-weight: 600;">Whisper Tiny (Speech-to-Text)</span></div>
           <div>Size: <span style="color: var(--text-main); font-weight: 500;">144 MB</span></div>
           <div>Est. RAM: <span style="color: var(--text-main); font-weight: 500;">~250 MB</span></div>
           <div>Load Time: <span id="asr-load-time" style="color: var(--text-main); font-weight: 500;">--</span></div>
@@ -614,11 +610,6 @@
         </div>
       </div>
 
-    </div>
-
-    <!-- RIGHT COLUMN: Outputs (LLM & TTS) -->
-    <div class="column">
-      
       <!-- GROUNDED LLM PANEL -->
       <div class="panel">
         <div class="panel-title">
@@ -627,7 +618,8 @@
           <span id="llm-status-badge" class="badge pending" style="margin-left: auto;">Not Loaded</span>
         </div>
 
-        <div class="model-meta-row" style="display: flex; justify-content: space-between; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.6rem 0.8rem; margin-bottom: 1rem; font-size: 0.8rem; color: var(--text-muted);">
+        <div class="model-meta-row" style="display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: space-between; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.6rem 0.8rem; margin-bottom: 1rem; font-size: 0.8rem; color: var(--text-muted);">
+          <div>Model: <span style="color: var(--text-main); font-weight: 600;">SmolLM Grounded QA (135M)</span></div>
           <div>Size: <span style="color: var(--text-main); font-weight: 500;">35 MB</span></div>
           <div>Est. RAM: <span style="color: var(--text-main); font-weight: 500;">~150 MB</span></div>
           <div>Load Time: <span id="llm-load-time" style="color: var(--text-main); font-weight: 500;">--</span></div>
@@ -696,7 +688,8 @@
           <span id="tts-status-badge" class="badge pending" style="margin-left: auto;">Not Loaded</span>
         </div>
 
-        <div class="model-meta-row" style="display: flex; justify-content: space-between; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.6rem 0.8rem; margin-bottom: 1rem; font-size: 0.8rem; color: var(--text-muted);">
+        <div class="model-meta-row" style="display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: space-between; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.6rem 0.8rem; margin-bottom: 1rem; font-size: 0.8rem; color: var(--text-muted);">
+          <div>Model: <span style="color: var(--text-main); font-weight: 600;">Pocket TTS (Mimi + FlowLM)</span></div>
           <div>Size: <span style="color: var(--text-main); font-weight: 500;">~120 MB</span></div>
           <div>Est. RAM: <span style="color: var(--text-main); font-weight: 500;">~300 MB</span></div>
           <div>Load Time: <span id="tts-load-time" style="color: var(--text-main); font-weight: 500;">--</span></div>
@@ -764,8 +757,6 @@
           <canvas id="tts-visualizer-waveform"></canvas>
         </div>
       </div>
-
-    </div>
   </div>
 
   <div class="footer">
@@ -791,6 +782,59 @@
       }
       const base = window.location.protocol + '//' + window.location.host + path;
       return new URL(relativePath, base).href;
+    }
+
+    // Dynamic high-resolution sample invoice generator (from litert_js reference)
+    function renderSampleInvoice() {
+      const W = 832;
+      const H = 1280;
+      const canvas = document.createElement('canvas');
+      canvas.width = W;
+      canvas.height = H;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Could not create 2D canvas context');
+
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, W, H);
+      ctx.textBaseline = 'top';
+
+      const text = (x, y, s, size = 26, bold = false, fill = '#111') => {
+        ctx.font = `${bold ? '700' : '400'} ${size}px "DejaVu Sans", Arial, sans-serif`;
+        ctx.fillStyle = fill;
+        ctx.fillText(s, x, y);
+      };
+      const line = (y) => {
+        ctx.fillStyle = '#111';
+        ctx.fillRect(60, y, W - 120, 3);
+      };
+
+      text(60, 50, 'ACME BUSINESS SOLUTIONS', 40, true);
+      text(60, 105, 'TAX INVOICE', 30, true, '#333344');
+      text(60, 170, 'INVOICE NO: INV-2047', 26);
+      text(60, 210, 'DATE: 12 JULY 2026', 26);
+      text(60, 250, 'BILL TO: TARENTO TECHNOLOGIES', 26);
+      line(320);
+      text(60, 350, 'ITEM', 26, true);
+      text(560, 350, 'AMOUNT', 26, true);
+
+      const rows = [
+        ['CLOUD HOSTING', '1450'],
+        ['CONSULTING SERVICES', '3200'],
+        ['SUPPORT PLAN', '170'],
+        ['DATA MIGRATION', '890'],
+      ];
+      let y = 410;
+      for (const [item, amount] of rows) {
+        text(60, y, item, 26);
+        text(560, y, amount, 26);
+        y += 55;
+      }
+      line(y + 10);
+      text(60, y + 40, 'TOTAL DUE: 5710 INR', 32, true);
+      text(60, y + 110, 'PAYMENT DUE BY 26 JULY 2026', 24);
+      text(60, y + 160, 'THANK YOU FOR YOUR BUSINESS', 24, false, '#555');
+
+      return canvas;
     }
 
     // --- 1. LITERT.JS MULTI-THREAD RUNTIME INITIALIZATION ---
@@ -1296,6 +1340,7 @@
     const ocrPreviewContainer = document.getElementById('ocr-preview-container');
     const ocrRunBtn = document.getElementById('ocr-run-btn');
     const ocrSampleBtn = document.getElementById('ocr-sample-btn');
+    const ocrSample2Btn = document.getElementById('ocr-sample2-btn');
     const ocrExtractedText = document.getElementById('ocr-extracted-text');
     const ocrDetectMs = document.getElementById('ocr-detect-ms');
     const ocrRecognizeMs = document.getElementById('ocr-recognize-ms');
@@ -1728,6 +1773,44 @@
       img.src = canvas.toDataURL();
     });
 
+    // Load Sample 2 (Invoice)
+    ocrSample2Btn.addEventListener('click', () => {
+      const img = new Image();
+      img.onload = () => {
+        uploadedImage = img;
+        const ocrCtx = ocrCanvas.getContext('2d');
+        ocrCanvas.width = img.width;
+        ocrCanvas.height = img.height;
+        ocrCtx.drawImage(img, 0, 0);
+        ocrPreviewContainer.style.display = 'flex';
+        ocrRunBtn.disabled = false;
+        
+        if (autoPipelineCb.checked) {
+          ocrRunBtn.click();
+        }
+      };
+      img.onerror = () => {
+        console.warn('Failed to load sample2.png, falling back to dynamically rendered invoice.');
+        const canvas = renderSampleInvoice();
+        const fallbackImg = new Image();
+        fallbackImg.onload = () => {
+          uploadedImage = fallbackImg;
+          const ocrCtx = ocrCanvas.getContext('2d');
+          ocrCanvas.width = fallbackImg.width;
+          ocrCanvas.height = fallbackImg.height;
+          ocrCtx.drawImage(fallbackImg, 0, 0);
+          ocrPreviewContainer.style.display = 'flex';
+          ocrRunBtn.disabled = false;
+          
+          if (autoPipelineCb.checked) {
+            ocrRunBtn.click();
+          }
+        };
+        fallbackImg.src = canvas.toDataURL();
+      };
+      img.src = getRelativeUrl('./sample2.png');
+    });
+
     // Load Sample Audio
     asrSampleBtn.addEventListener('click', async () => {
       asrStatusText.textContent = 'Fetching sample.wav...';
@@ -1786,6 +1869,60 @@
 
   <!-- LOAD TTS SCRIPTS -->
   <script type="module" src="./onnx-streaming.js"></script>
+
+  <!-- Console Debug Log Overlay -->
+  <div id="debug-console-log" style="position: fixed; bottom: 20px; right: 20px; width: 350px; max-height: 250px; overflow-y: auto; background: rgba(15, 15, 25, 0.9); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 12px; color: #f87171; font-family: monospace; font-size: 0.75rem; padding: 12px; z-index: 10000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(8px); display: none;">
+    <div style="font-weight: bold; border-bottom: 1px solid rgba(239, 68, 68, 0.1); padding-bottom: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+      <span>Debug Logs</span>
+      <span style="cursor: pointer; opacity: 0.7; transition: opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.7" onclick="this.parentElement.parentElement.style.display='none'">✕</span>
+    </div>
+    <div id="debug-console-entries"></div>
+  </div>
+  <script>
+    (function() {
+      const originalError = console.error;
+      const originalWarn = console.warn;
+      const originalLog = console.log;
+      
+      function showEntry(type, args) {
+        const text = args.map(arg => {
+          if (arg instanceof Error) return arg.message + '\n' + arg.stack;
+          return typeof arg === 'object' ? JSON.stringify(arg) : String(arg);
+        }).join(' ');
+        
+        const entry = document.createElement('div');
+        entry.style.color = type === 'error' ? '#f87171' : (type === 'warn' ? '#fbbf24' : '#a78bfa');
+        entry.style.marginBottom = '6px';
+        entry.style.wordBreak = 'break-all';
+        entry.style.whiteSpace = 'pre-wrap';
+        entry.textContent = `[${type.toUpperCase()}] ${text}`;
+        
+        const container = document.getElementById('debug-console-entries');
+        const root = document.getElementById('debug-console-log');
+        if (container && root) {
+          root.style.display = 'block';
+          container.appendChild(entry);
+          root.scrollTop = root.scrollHeight;
+        }
+      }
+
+      console.error = function(...args) {
+        originalError.apply(console, args);
+        showEntry('error', args);
+      };
+      console.warn = function(...args) {
+        originalWarn.apply(console, args);
+        showEntry('warn', args);
+      };
+      console.log = function(...args) {
+        originalLog.apply(console, args);
+        const lower = args.join(' ').toLowerCase();
+        if (lower.includes('error') || lower.includes('fail') || lower.includes('reject') || lower.includes('exception')) {
+          showEntry('info', args);
+        }
+      };
+    })();
+  </script>
 
 </body>
 </html>
