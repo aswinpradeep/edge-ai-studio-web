@@ -2,6 +2,7 @@
 <html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
+  <script src="./coi-serviceworker.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Edge AI Studio — Unified Multi-Modal Pipeline</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -787,7 +788,7 @@
     async function initLiteRt() {
       if (runtimeReady) return;
       // Initialize LiteRT using local wasm binaries
-      await loadLiteRt('/wasm/', { threads: crossOriginIsolated });
+      await loadLiteRt('./wasm/', { threads: crossOriginIsolated });
       
       // Patch the Emscripten binding bug for LiteRT enums
       const liteRtWasm = getGlobalLiteRt()?.liteRtWasm;
@@ -1065,8 +1066,8 @@
         if (this.ready) return;
         onStatus?.('Loading tokenizer & filters...');
         const [melBuf, tk] = await Promise.all([
-          fetch('/asr/mel_filters_80.bin').then((r) => r.arrayBuffer()),
-          fetch('/asr/whisper_tokenizer.json').then((r) => r.json()),
+          fetch('./asr/mel_filters_80.bin').then((r) => r.arrayBuffer()),
+          fetch('./asr/whisper_tokenizer.json').then((r) => r.json()),
         ]);
         this.mel = new Float32Array(melBuf);
 
@@ -1379,10 +1380,10 @@
       
       await initLiteRt();
       if (!ocrDetector) {
-        ocrDetector = await loadAndCompile('/models/craft_float_640.tflite', { accelerator: 'wasm' });
+        ocrDetector = await loadAndCompile('./models/craft_float_640.tflite', { accelerator: 'wasm' });
       }
       if (!ocrRecognizer) {
-        ocrRecognizer = await loadAndCompile('/models/keras_ocr_unrolled_b8_fp16.tflite', { accelerator: 'wasm' });
+        ocrRecognizer = await loadAndCompile('./models/keras_ocr_unrolled_b8_fp16.tflite', { accelerator: 'wasm' });
       }
       
       const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
