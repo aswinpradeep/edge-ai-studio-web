@@ -783,12 +783,22 @@
     env.backends.onnx.wasm.proxy = false;
     env.backends.onnx.wasm.numThreads = 1;
 
+    // Helper to get correct relative URLs on subdirectories/GitHub Pages
+    function getRelativeUrl(relativePath) {
+      let path = window.location.pathname;
+      if (!path.endsWith('/') && !path.includes('.')) {
+        path += '/';
+      }
+      const base = window.location.protocol + '//' + window.location.host + path;
+      return new URL(relativePath, base).href;
+    }
+
     // --- 1. LITERT.JS MULTI-THREAD RUNTIME INITIALIZATION ---
     let runtimeReady = false;
     async function initLiteRt() {
       if (runtimeReady) return;
       // Initialize LiteRT using local wasm binaries
-      await loadLiteRt('./wasm/', { threads: crossOriginIsolated });
+      await loadLiteRt(getRelativeUrl('./wasm/'), { threads: crossOriginIsolated });
       
       // Patch the Emscripten binding bug for LiteRT enums
       const liteRtWasm = getGlobalLiteRt()?.liteRtWasm;
@@ -1066,8 +1076,8 @@
         if (this.ready) return;
         onStatus?.('Loading tokenizer & filters...');
         const [melBuf, tk] = await Promise.all([
-          fetch('./asr/mel_filters_80.bin').then((r) => r.arrayBuffer()),
-          fetch('./asr/whisper_tokenizer.json').then((r) => r.json()),
+          fetch(getRelativeUrl('./asr/mel_filters_80.bin')).then((r) => r.arrayBuffer()),
+          fetch(getRelativeUrl('./asr/whisper_tokenizer.json')).then((r) => r.json()),
         ]);
         this.mel = new Float32Array(melBuf);
 
@@ -1380,10 +1390,10 @@
       
       await initLiteRt();
       if (!ocrDetector) {
-        ocrDetector = await loadAndCompile('./models/craft_float_640.tflite', { accelerator: 'wasm' });
+        ocrDetector = await loadAndCompile(getRelativeUrl('./models/craft_float_640.tflite'), { accelerator: 'wasm' });
       }
       if (!ocrRecognizer) {
-        ocrRecognizer = await loadAndCompile('./models/keras_ocr_unrolled_b8_fp16.tflite', { accelerator: 'wasm' });
+        ocrRecognizer = await loadAndCompile(getRelativeUrl('./models/keras_ocr_unrolled_b8_fp16.tflite'), { accelerator: 'wasm' });
       }
       
       const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
@@ -1722,7 +1732,7 @@
     asrSampleBtn.addEventListener('click', async () => {
       asrStatusText.textContent = 'Fetching sample.wav...';
       try {
-        const response = await fetch('./asr/sample.wav');
+        const response = await fetch(getRelativeUrl('./asr/sample.wav'));
         const arrayBuffer = await response.arrayBuffer();
         
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
