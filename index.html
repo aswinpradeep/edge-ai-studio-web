@@ -839,10 +839,17 @@
 
     // --- 1. LITERT.JS MULTI-THREAD RUNTIME INITIALIZATION ---
     let runtimeReady = false;
+    
+    // XNNPACK threads calculation matching litert_js/src/lite.ts
+    const cpuThreads = () => Math.max(1, Math.min((navigator.hardwareConcurrency || 4) - 2, 8));
+
     async function initLiteRt() {
       if (runtimeReady) return;
-      // Initialize LiteRT using local wasm binaries
-      await loadLiteRt(getRelativeUrl('./wasm/'), { threads: crossOriginIsolated });
+      // threads defaults to false — without it the single-threaded wasm loads
+      // even on cross-origin-isolated pages and CPU inference runs ~5-10x slower.
+      // ?nothreads forces the single-threaded build (diagnostic).
+      const single = typeof location !== 'undefined' && new URLSearchParams(location.search).has('nothreads');
+      await loadLiteRt(getRelativeUrl('./wasm/'), { threads: crossOriginIsolated && !single });
       
       // Patch the Emscripten binding bug for LiteRT enums
       const liteRtWasm = getGlobalLiteRt()?.liteRtWasm;
@@ -1329,8 +1336,6 @@
     let ocrRecognizer = null;
     let asrModel = null;
     let llmPipeline = null;
-
-    const docOcrRunner = new DocOcr(null, null);
     const asrTranscriber = new Asr();
 
     // DOM References
@@ -1404,6 +1409,9 @@
           ctx.drawImage(img, 0, 0);
           ocrPreviewContainer.style.display = 'flex';
           ocrRunBtn.disabled = false;
+          
+          llmQuestion.value = "";
+          llmQuestion.dispatchEvent(new Event('input'));
         };
         img.src = e.target.result;
       };
@@ -1434,11 +1442,20 @@
       const startTime = performance.now();
       
       await initLiteRt();
+      const threads = crossOriginIsolated ? cpuThreads() : undefined;
+      const cpuOptions = threads ? { cpuOptions: { numThreads: threads } } : {};
+
       if (!ocrDetector) {
-        ocrDetector = await loadAndCompile(getRelativeUrl('./models/craft_float_640.tflite'), { accelerator: 'wasm' });
+        ocrDetector = await loadAndCompile(getRelativeUrl('./models/craft_float_640.tflite'), { 
+          accelerator: 'wasm',
+          ...cpuOptions
+        });
       }
       if (!ocrRecognizer) {
-        ocrRecognizer = await loadAndCompile(getRelativeUrl('./models/keras_ocr_unrolled_b8_fp16.tflite'), { accelerator: 'wasm' });
+        ocrRecognizer = await loadAndCompile(getRelativeUrl('./models/keras_ocr_unrolled_b8_fp16.tflite'), { 
+          accelerator: 'wasm',
+          ...cpuOptions
+        });
       }
       
       const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
@@ -1457,8 +1474,14 @@
       const startTime = performance.now();
       
       await initLiteRt();
+      const threads = crossOriginIsolated ? cpuThreads() : undefined;
+      const cpuOptions = threads ? { cpuOptions: { numThreads: threads } } : {};
+
       if (!asrModel) {
-        asrModel = await loadAndCompile('https://huggingface.co/litert-community/whisper-tiny/resolve/main/whisper_tiny_30s_f32.tflite', { accelerator: 'wasm' });
+        asrModel = await loadAndCompile('https://huggingface.co/litert-community/whisper-tiny/resolve/main/whisper_tiny_30s_f32.tflite', { 
+          accelerator: 'wasm',
+          ...cpuOptions
+        });
       }
       await asrTranscriber.init((m) => { asrStatusText.textContent = m; });
       
@@ -1524,13 +1547,12 @@
       try {
         await loadOcr();
         
-        docOcrRunner.detector = ocrDetector;
-        docOcrRunner.recognizer = ocrRecognizer;
+        const runner = new DocOcr(ocrDetector, ocrRecognizer);
 
         const ctx = ocrCanvas.getContext('2d');
         ctx.drawImage(uploadedImage, 0, 0); // Reset visual overlay
         
-        const result = await docOcrRunner.run(ocrCanvas, (word) => {
+        const result = await runner.run(ocrCanvas, (word) => {
           // progressive box rendering
           ctx.strokeStyle = '#06b6d4';
           ctx.lineWidth = 3;
@@ -1766,6 +1788,9 @@
         ocrPreviewContainer.style.display = 'flex';
         ocrRunBtn.disabled = false;
         
+        llmQuestion.value = "What is the target of Edge AI Studio?";
+        llmQuestion.dispatchEvent(new Event('input'));
+
         if (autoPipelineCb.checked) {
           ocrRunBtn.click();
         }
@@ -1785,6 +1810,9 @@
         ocrPreviewContainer.style.display = 'flex';
         ocrRunBtn.disabled = false;
         
+        llmQuestion.value = "What is the total amount due?";
+        llmQuestion.dispatchEvent(new Event('input'));
+
         if (autoPipelineCb.checked) {
           ocrRunBtn.click();
         }
@@ -1802,6 +1830,9 @@
           ocrPreviewContainer.style.display = 'flex';
           ocrRunBtn.disabled = false;
           
+          llmQuestion.value = "What is the total amount due?";
+          llmQuestion.dispatchEvent(new Event('input'));
+
           if (autoPipelineCb.checked) {
             ocrRunBtn.click();
           }

@@ -19,11 +19,11 @@ else
     git commit -m "$msg"
 fi
 
-echo -e "${YELLOW}Pushing to GitHub (master branch)...${NC}"
-if git push origin master; then
+echo -e "${YELLOW}Pushing to GitHub (main branch)...${NC}"
+if git push origin main; then
     echo -e "${GREEN}Successfully pushed to GitHub! Deployment workflow should start shortly.${NC}"
 else
     echo -e "${YELLOW}Failed to push. Make sure you have set up a remote origin repository:${NC}"
     echo -e "  git remote add origin https://github.com/yourusername/edge-ai-studio-web.git"
-    echo -e "  git push -u origin master"
+    echo -e "  git push -u origin main"
 fi
